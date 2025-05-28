@@ -11,7 +11,7 @@
 // Several parts of this module are broken out into files in _testcapi/.
 // Include definitions from there.
 #include "_testcapi/parts.h"
-
+#include "pycriticalsection.h"
 #include "frameobject.h"          // PyFrame_New()
 #include "marshal.h"              // PyMarshal_WriteLongToFile()
 

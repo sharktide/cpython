@@ -11,6 +11,8 @@
 #include "pycore_pythread.h"      // _POSIX_THREADS
 #include "pycore_runtime.h"       // _PyRuntime
 #include "pycore_structseq.h"     // _PyStructSequence_FiniBuiltin()
+#include "internal/pycore_critical_section.h"
+#include "pycriticalsection.h"
 
 #ifndef DONT_HAVE_STDIO_H
 #  include <stdio.h>
@@ -127,6 +129,20 @@ PyThread_ParseTimeoutArg(PyObject *arg, int blocking, PY_TIMEOUT_T *timeout_p)
     *timeout_p = timeout;
     return 0;
 }
+
+PyAPI_FUNC(void) PyCriticalSection_BeginMutex(PyCriticalSection *c, PyMutex *m)
+{
+    if (PyMutex_LockFast(m)) {
+        PyThreadState *tstate = _PyThreadState_GET();
+        c->_cs_mutex = m;
+        c->_cs_prev = tstate->critical_section;
+        tstate->critical_section = (uintptr_t)c;
+    }
+    else {
+        _PyCriticalSection_BeginSlow(c, m);
+    }
+}
+
 
 PyLockStatus
 PyThread_acquire_lock_timed_with_retries(PyThread_type_lock lock,

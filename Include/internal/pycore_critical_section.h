@@ -106,19 +106,8 @@ _PyCriticalSection_IsActive(uintptr_t tag)
     return tag != 0 && (tag & _Py_CRITICAL_SECTION_INACTIVE) == 0;
 }
 
-static inline void
-_PyCriticalSection_BeginMutex(PyCriticalSection *c, PyMutex *m)
-{
-    if (PyMutex_LockFast(m)) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        c->_cs_mutex = m;
-        c->_cs_prev = tstate->critical_section;
-        tstate->critical_section = (uintptr_t)c;
-    }
-    else {
-        _PyCriticalSection_BeginSlow(c, m);
-    }
-}
+PyAPI_FUNC(void) PyCriticalSection_BeginMutex(PyCriticalSection *c, PyMutex *m);
+
 
 static inline void
 _PyCriticalSection_Begin(PyCriticalSection *c, PyObject *op)
